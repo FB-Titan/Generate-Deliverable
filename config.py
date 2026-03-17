@@ -9,7 +9,10 @@ CLICKUP_API_BASE_URL = "https://api.clickup.com/api/v2"
 
 # Custom Field IDs
 GENERATE_PDF_FIELD_ID = os.getenv('GENERATE_PDF_FIELD_ID', '')
-GENERATED_OPTION_INDEX = int(os.getenv('GENERATED_OPTION_INDEX', '2'))
+try:
+    GENERATED_OPTION_INDEX = int(os.getenv('GENERATED_OPTION_INDEX', '2'))
+except (ValueError, TypeError):
+    GENERATED_OPTION_INDEX = 2
 
 # PDF Configuration
 LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'FB_Titan.png')
