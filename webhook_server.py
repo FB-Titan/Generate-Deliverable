@@ -144,15 +144,31 @@ def webhook_generate():
     """
     ClickUp Automation webhook endpoint.
     Receives task_id, generates the appropriate PDF, uploads it.
+    Accepts task_id from: JSON body, query params, or form data.
     """
     try:
         payload = request.get_json(force=True, silent=True) or {}
-        logger.info("Webhook received: %s", payload)
+        logger.info("Webhook received - payload: %s", payload)
+        logger.info("Webhook query params: %s", dict(request.args))
 
+        # Try extracting task_id from multiple sources
         task_id = extract_task_id(payload)
+
+        # Fallback: query parameters
         if not task_id:
-            logger.error("No task_id found in payload")
-            return jsonify({'error': 'No task_id found in payload'}), 400
+            task_id = request.args.get('task_id')
+
+        # Fallback: form data
+        if not task_id:
+            task_id = request.form.get('task_id')
+
+        if not task_id:
+            logger.warning("No task_id found — may be a test ping")
+            return jsonify({
+                'status': 'ok',
+                'message': 'Webhook is active. No task_id provided.',
+                'hint': 'Send {"task_id": "your_task_id"} in the body or ?task_id=xxx as query param'
+            }), 200
 
         result = generate_deliverable(task_id)
         return jsonify(result), 200
