@@ -133,7 +133,9 @@ def health():
     return jsonify({
         'status': 'healthy',
         'service': 'generate-deliverable',
-        'supported_types': [v['name'] for v in GENERATORS.values()]
+        'supported_types': [v['name'] for v in GENERATORS.values()],
+        'token_set': bool(config.CLICKUP_API_TOKEN),
+        'field_id_set': bool(config.GENERATE_PDF_FIELD_ID)
     })
 
 
