@@ -4,14 +4,17 @@ Flask app that receives ClickUp automation webhooks, routes by PMO Item Type,
 generates the appropriate PDF, and uploads it back to the task.
 """
 import os
+import re
 import time
 import logging
+from datetime import datetime
 from flask import Flask, request, jsonify
 
 import config
 from utils import (
     fetch_task_details, upload_attachment,
-    update_custom_field, get_pmo_item_type
+    update_custom_field, get_pmo_item_type,
+    process_common_fields
 )
 from generators.rfi import create_rfi_pdf
 from generators.submittal import create_submittal_pdf
@@ -90,9 +93,15 @@ def generate_deliverable(task_id):
             f"Supported: {', '.join(supported)}"
         )
 
-    # 3. Generate PDF
-    timestamp = int(time.time())
-    filename = f"{gen_config['prefix']}_{task_id}_{timestamp}.pdf"
+    # 3. Build descriptive filename: {ID}_{Subject}_{Date}.pdf
+    common = process_common_fields(task_data)
+    doc_id = f"{common['project_id']}-{gen_config['prefix']}-{common['sequence']}"
+    subject = common.get('subject', 'Untitled')
+    # Sanitize subject for filesystem: replace non-alphanumeric with underscores
+    safe_subject = re.sub(r'[^\w\s-]', '', subject).strip()
+    safe_subject = re.sub(r'[\s]+', '_', safe_subject)[:60]  # Truncate long subjects
+    date_str = datetime.now().strftime('%m-%d-%Y')
+    filename = f"{doc_id}_{safe_subject}_{date_str}.pdf"
     output_path = os.path.join(config.PDF_OUTPUT_DIR, filename)
 
     logger.info("Generating %s PDF: %s", gen_config['name'], filename)
