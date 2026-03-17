@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
+.env
+
+# Generated PDFs
+output/
+*.pdf
+
+# Archive & notebooks
+Archive/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+
+# Test data
+API
+Test RFI Archive/
